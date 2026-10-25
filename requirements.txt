@@ -1,0 +1,7 @@
+pytest>=8
+requests>=2.31
+# Pin playwright to the version of the mcr.microsoft.com/playwright/python
+# image used in run-browser-tests.sh and .github/workflows/nightly.yml; the
+# Python package and the image's browsers must match exactly.
+playwright==1.58.0
+pytest-playwright>=0.6

@@ -1,0 +1,53 @@
+name: mine checks
+
+on:
+  schedule:
+    - cron: "17 4 * * *"      # daily, 04:17 UTC
+  workflow_dispatch:
+    inputs:
+      mine:
+        description: "mine key from mines.toml (empty = all)"
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths: ["**.py", "mines.toml", "requirements.txt", ".github/workflows/*.yml"]
+
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Service checks
+        run: |
+          MINE="${{ github.event.inputs.mine }}"
+          pytest tests/service ${MINE:+--mine "$MINE"} --junitxml=service.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: service-results
+          path: service.xml
+
+  browser:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.58.0-noble   # keep in step with requirements.txt
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - name: Report-page checks in Chromium and Firefox
+        run: |
+          MINE="${{ github.event.inputs.mine }}"
+          pytest tests/browser --browser chromium --browser firefox ${MINE:+--mine "$MINE"} \
+            --screenshot only-on-failure --tracing retain-on-failure --junitxml=browser.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-results
+          path: |
+            browser.xml
+            test-results/

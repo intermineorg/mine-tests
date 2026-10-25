@@ -1,0 +1,87 @@
+# Mines under test and the fixtures the tests use.  Select mines with
+# `pytest --mine humanmine` (repeatable); the default is every mine listed.
+#
+# url        public root of the BlueGenes site (no trailing slash)
+# webapp     path segment of the InterMine web service: <url>/<webapp>/service
+# taxon      NCBI taxon id of the organism the fixture gene belongs to
+# jbrowse    where JBrowse 1 is published for this mine; omit to skip those tests
+# frontend   deployment-specific routes added by intermineorg/docker_template;
+#            set each to false (or omit) for a mine deployed another way
+# gene       a gene whose report page is used for the browser tests; data
+#            below must match what the mine actually holds
+# gene.expect  which tool network calls are expected on that report page
+# tools.rendered  BlueGenes tool panels (config.json toolName.cljs) that
+#            must draw something on that report page
+
+[mines.humanmine]
+url = "https://www.humanmine.org"
+webapp = "humanmine"
+taxon = 9606
+jbrowse = "https://www.humanmine.org/jbrowse/"
+
+[mines.humanmine.frontend]
+imjs_vendor = true          # nginx serves /vendor/imjs/im.min.js and injects it
+align_sequence = true       # nginx routes /align-sequence to the aligner container
+classic_webapp = "/query"   # the JSP webapp is published under this path
+
+[mines.humanmine.gene]
+id = 1234788                # InterMine object id (report/Gene/<id>)
+symbol = "PAX6"
+primary_identifier = "5080"
+chromosome = "11"
+start = 31789026            # 1-based, as shown on the report page
+end = 31817961
+min_proteins = 5            # MSA viewer only calls the aligner with > 1 protein
+pdb = "2CUE"                # one PDB entry the protein visualizer should list
+# Pick a gene all of whose proteins have a primaryAccession: the protein
+# visualizer and MSA viewer build a query "Protein.primaryAccession = <acc>"
+# per protein and InterMine rejects it with 400 when one is null, so both
+# tools fail on such genes (FlyMine Ubx, bcd, ey, lab, pb, prd, Sxl ...).
+
+[mines.humanmine.gene.expect]
+rcsb = true
+align = true
+
+[mines.humanmine.tools]
+rendered = [
+  "bluegenesJBrowseTool",
+  "bluegenesProteinVisualizer",
+  "bluegenesMSAViewer",
+  "bluegenesHumanTissueExpressionVisualizer",
+  "bluegenesProteinAtlasTissueExpressionVisualizer",
+  "bluegenesToolCytoscape",
+]
+
+[mines.flymine]
+url = "https://www.flymine.org"
+webapp = "flymine"
+taxon = 7227
+jbrowse = "https://www.flymine.org/jbrowse/"
+
+[mines.flymine.frontend]
+imjs_vendor = true
+align_sequence = true
+classic_webapp = "/query"
+
+[mines.flymine.gene]
+id = 1033224
+symbol = "Scr"
+primary_identifier = "FBgn0003339"
+chromosome = "3R"
+start = 6823120
+end = 6849981
+min_proteins = 4
+pdb = "2R5Y"
+
+[mines.flymine.gene.expect]
+rcsb = true
+align = true
+
+[mines.flymine.tools]
+rendered = [
+  "bluegenesJBrowseTool",
+  "bluegenesProteinVisualizer",
+  "bluegenesMSAViewer",
+  "bluegenesTissueExpressionVisualizer",
+  "bluegenesToolCytoscape",
+]
