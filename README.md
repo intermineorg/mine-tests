@@ -95,6 +95,12 @@ Useful options:
   that does not exist (empty view); regenerate the JBrowse 2 config (its
   `docs/DEPLOY.md`, "Regenerate the config"). `test_gene_model_query`
   failing means gene models will be drawn as flat boxes or not at all.
+- `test_frontend.py::test_tool_store_lists_tools_and_serves_their_files`
+  failing with "no tools installed" usually means `data/tools/tools.edn`
+  cannot be parsed (for instance an entry without its version string after
+  a hand edit): BlueGenes then lists no tools and every report page loses
+  every tool panel, and its log says `Tool config ./tools/tools.edn is
+  missing` although the file is there.
 - A tool missing from `test_expected_tools_present` although
   `/api/tools/all` lists it is usually the mine's saved report page layout:
   only tools in the layout appear (docker_template README, "Adding a
