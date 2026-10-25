@@ -4,7 +4,11 @@
 # url        public root of the BlueGenes site (no trailing slash)
 # webapp     path segment of the InterMine web service: <url>/<webapp>/service
 # taxon      NCBI taxon id of the organism the fixture gene belongs to
-# jbrowse    where JBrowse 1 is published for this mine; omit to skip those tests
+# jbrowse    where JBrowse 1 is published for this mine; omit to skip those tests.
+#            HumanMine and FlyMine report pages now embed JBrowse 2 only, but
+#            JBrowse 1 is still served (classic webapp, other sites), so its
+#            site and REST endpoints stay tested; the JBrowse 1 iframe test
+#            runs only when bluegenesJBrowseTool is in tools.rendered
 # jbrowse2   where JBrowse 2 (intermineorg/jbrowse2) is published for this
 #            mine; omit to skip those tests
 # frontend   deployment-specific routes added by intermineorg/docker_template;
@@ -60,6 +64,7 @@ url = "https://www.flymine.org"
 webapp = "flymine"
 taxon = 7227
 jbrowse = "https://www.flymine.org/jbrowse/"
+jbrowse2 = "https://www.flymine.org/jbrowse2/"
 
 [mines.flymine.frontend]
 imjs_vendor = true
@@ -82,7 +87,7 @@ align = true
 
 [mines.flymine.tools]
 rendered = [
-  "bluegenesJBrowseTool",
+  "bluegenesJBrowse2Tool",
   "bluegenesProteinVisualizer",
   "bluegenesMSAViewer",
   "bluegenesTissueExpressionVisualizer",
