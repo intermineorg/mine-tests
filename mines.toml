@@ -5,6 +5,8 @@
 # webapp     path segment of the InterMine web service: <url>/<webapp>/service
 # taxon      NCBI taxon id of the organism the fixture gene belongs to
 # jbrowse    where JBrowse 1 is published for this mine; omit to skip those tests
+# jbrowse2   where JBrowse 2 (intermineorg/jbrowse2) is published for this
+#            mine; omit to skip those tests
 # frontend   deployment-specific routes added by intermineorg/docker_template;
 #            set each to false (or omit) for a mine deployed another way
 # gene       a gene whose report page is used for the browser tests; data
@@ -18,6 +20,7 @@ url = "https://www.humanmine.org"
 webapp = "humanmine"
 taxon = 9606
 jbrowse = "https://www.humanmine.org/jbrowse/"
+jbrowse2 = "https://www.humanmine.org/jbrowse2/"
 
 [mines.humanmine.frontend]
 imjs_vendor = true          # nginx serves /vendor/imjs/im.min.js and injects it
@@ -44,7 +47,7 @@ align = true
 
 [mines.humanmine.tools]
 rendered = [
-  "bluegenesJBrowseTool",
+  "bluegenesJBrowse2Tool",
   "bluegenesProteinVisualizer",
   "bluegenesMSAViewer",
   "bluegenesHumanTissueExpressionVisualizer",

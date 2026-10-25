@@ -165,6 +165,8 @@ def test_msa_viewer_calls_the_aligner(report):
 
 def test_jbrowse_iframe_loads(report):
     jb = feature(report.mine, "jbrowse")
+    if "bluegenesJBrowseTool" not in report.mine.tools.get("rendered", []):
+        pytest.skip(f"{report.mine.key}: the JBrowse 1 tool is not on the report page")
     page = report.page
     frame_el = page.locator(".bluegenesJBrowseTool iframe")
     assert frame_el.count() == 1, "no JBrowse iframe in the tool panel"
@@ -178,3 +180,40 @@ def test_jbrowse_iframe_loads(report):
     frame.wait_for_selector(".track", timeout=60_000)
     body = frame.evaluate("document.body.innerText")
     assert not re.search(r"Error|could not", body), body[:300]
+
+
+# True once JBrowse 2 has drawn something: a canvas with at least one
+# non-transparent pixel (feature tracks, the sequence) inside the iframe.
+JS_JBROWSE2_DRAWN = """
+() => [...document.querySelectorAll('canvas')].some(c => {
+  try {
+    const ctx = c.getContext('2d');
+    if (!ctx || !c.width || !c.height) return false;
+    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) return true;
+  } catch (e) {}
+  return false;
+})
+"""
+
+
+def test_jbrowse2_iframe_loads(report):
+    """The JBrowse 2 tool (intermineorg/jbrowse2) embeds the mine's JBrowse 2
+    on the fixture gene, and a track draws."""
+    jb = feature(report.mine, "jbrowse2")
+    if "bluegenesJBrowse2Tool" not in report.mine.tools.get("rendered", []):
+        pytest.skip(f"{report.mine.key}: the JBrowse 2 tool is not on the report page")
+    page = report.page
+    frame_el = page.locator(".bluegenesJBrowse2Tool iframe")
+    assert frame_el.count() == 1, "no JBrowse 2 iframe in the tool panel"
+    src = frame_el.get_attribute("src")
+    assert src.startswith(jb), f"iframe points at {src}, expected {jb}..."
+    g = report.mine.gene
+    assert f"loc={g['chromosome']}%3A" in src or f"loc={g['chromosome']}:" in src, \
+        f"iframe does not open chromosome {g['chromosome']}: {src}"
+    assert f"-{report.mine.taxon}" in src, f"iframe does not name this mine's assembly: {src}"
+    frame = next((f for f in page.frames if f.url.startswith(jb)), None)
+    assert frame is not None, f"frame for {jb} not found among {[f.url for f in page.frames]}"
+    frame.wait_for_function(JS_JBROWSE2_DRAWN, timeout=60_000)
+    body = frame.evaluate("document.body.innerText")
+    assert not re.search(r"Error|Failed to fetch|could not", body), body[:300]

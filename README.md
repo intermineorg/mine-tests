@@ -16,9 +16,10 @@ mine by adding a section there.
 |------|----------------|-------|
 | `tests/service/test_webservice.py` | InterMine web service: version, model, a known gene by query and keyword search, templates, query schemas | Python only |
 | `tests/service/test_frontend.py` | BlueGenes HTML, imjs available to tools, tool store list and files, favicon, classic webapp, no internal hostnames | Python only |
-| `tests/service/test_jbrowse.py` | InterMine's JBrowse REST endpoints (track list, refseqs, features, sequence, stats, names) and the JBrowse site | Python only |
+| `tests/service/test_jbrowse.py` | InterMine's JBrowse REST endpoints (track list, refseqs, features, sequence, stats, names) and the JBrowse 1 site | Python only |
+| `tests/service/test_jbrowse2.py` | The JBrowse 2 site ([intermineorg/jbrowse2](https://github.com/intermineorg/jbrowse2)): page, `config.json` (this mine's assembly, named as the BlueGenes tool names it, with a gene-model Gene track), plugin bundle, CORS on the query service for the JBrowse 2 origin, and the gene-model query for the fixture gene | Python only |
 | `tests/service/test_tools.py` | Tool bundle patches, the `/align-sequence` route, RCSB v2 search for the fixture protein | Python only |
-| `tests/browser/test_report_tools.py` | A gene report page in Chromium/Firefox/WebKit: every configured tool draws, no error text, no uncaught exceptions, RCSB v2 and aligner calls succeed, JBrowse iframe loads | Playwright |
+| `tests/browser/test_report_tools.py` | A gene report page in Chromium/Firefox/WebKit: every configured tool draws, no error text, no uncaught exceptions, RCSB v2 and aligner calls succeed, the JBrowse 1 or JBrowse 2 iframe loads (whichever tool the report page shows) and draws | Playwright |
 | `tools/relay/relay.py` | Patch rehearsal: serve local files (e.g. a patched tool bundle) in place of a live site's, relay the rest | Python only |
 | `.github/workflows/nightly.yml` | Runs everything daily against the configured mines | GitHub Actions |
 
@@ -89,6 +90,16 @@ Useful options:
 - The `patched` tests fail on a mine whose tool bundles were reinstalled
   from npm without re-applying the patches; the message says which patch.
 
+- `test_jbrowse2.py::test_jbrowse2_config_has_this_mine` failing on the
+  assembly name means the BlueGenes tool will open JBrowse 2 on an assembly
+  that does not exist (empty view); regenerate the JBrowse 2 config (its
+  `docs/DEPLOY.md`, "Regenerate the config"). `test_gene_model_query`
+  failing means gene models will be drawn as flat boxes or not at all.
+- A tool missing from `test_expected_tools_present` although
+  `/api/tools/all` lists it is usually the mine's saved report page layout:
+  only tools in the layout appear (docker_template README, "Adding a
+  BlueGenes tool to report pages").
+
 ## Rehearsing a change with the relay
 
 To try a modified tool bundle against live data before deploying it:
@@ -110,8 +121,10 @@ hostname, behave differently through the relay.)
 
 - New mine: a `[mines.<key>]` section in `mines.toml` with a fixture gene
   whose data you have checked by hand, and the list of tool panels that
-  render for it. Omit `jbrowse` or set `frontend.*` to false for features
-  the deployment lacks.
+  render for it. Omit `jbrowse`/`jbrowse2` or set `frontend.*` to false for
+  features the deployment lacks. The JBrowse iframe tests run for whichever
+  of `bluegenesJBrowseTool` and `bluegenesJBrowse2Tool` is listed in
+  `tools.rendered`.
 - New check: a test function taking `http, mine` (service) or `report`
   (browser). Use `feature(mine, ...)` from `conftest.py` to skip cleanly when
   a mine does not configure what the test needs.

@@ -21,6 +21,7 @@ class Mine:
     webapp: str
     taxon: int
     jbrowse: str | None = None
+    jbrowse2: str | None = None
     frontend: dict = field(default_factory=dict)
     gene: dict = field(default_factory=dict)
     tools: dict = field(default_factory=dict)
