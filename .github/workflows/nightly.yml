@@ -36,6 +36,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright/python:v1.58.0-noble   # keep in step with requirements.txt
+    env:
+      # Actions runs the container as root with HOME=/github/home, which belongs
+      # to the runner user; Firefox then refuses to start ("Firefox is unable
+      # to launch if the $HOME folder isn't owned by the current user").
+      HOME: /root
     steps:
       - uses: actions/checkout@v4
       - run: pip install -r requirements.txt
